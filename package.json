@@ -5,7 +5,7 @@
   "author": "GrandEmpereur",
   "scripts": {
     "tsc": "tsc",
-    "test": "jest --watchAll --runInBand --detectOpenHandles --forceExit",
+    "test": "jest",
     "lint": "eslint --ext .ts ./src",
     "lint:fix": "eslint --fix --ext .ts ./src"
   },
