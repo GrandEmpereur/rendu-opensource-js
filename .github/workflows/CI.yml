@@ -7,7 +7,7 @@ on:
 
 jobs:
   ci:
-    name: Continuous integration
+    name: OSS CI pipeline
     runs-on: ubuntu-latest
 
     steps:
