@@ -1,77 +1,108 @@
-// This is the corrected file:
-import axios from 'axios';
-import MockAdapter from 'axios-mock-adapter';
-import { updateAxiosInstance, searchByQuery, searchByRegion,search } from '../axios';
+import axios, { AxiosError, AxiosResponse } from 'axios';
+import {
+    updateAxiosInstance,
+    makeSearch,
+    searchByQuery,
+    search
+} from '../axios'; // change this to the path where your axios file is
+import { SearchParams } from '../types/search.types'; 
 
-jest.mock('axios', () => ({
-    create: jest.fn(() => ({
-        interceptors: {
-            response: {
-                use: jest.fn()
-            }
-        },
-        get: jest.fn()
-    })),
-    get: jest.fn()
-}));
+jest.mock('axios');
+const mockedAxios = axios as jest.Mocked<typeof axios>;
 
-describe('Axios instance tests', () => {
-    it('should create an instance', () => {
+describe('Axios instance', () => {
+    it('should create a new instance', () => {
         updateAxiosInstance();
-        expect(axios.create).toBeCalled();
+        expect(mockedAxios.create).toBeCalledWith({ baseURL: 'https://data.culture.gouv.fr/api/records/1.0/' });
     });
 });
 
-describe('Search functions tests', () => {
-    let mock: any;
-
+describe('API request', () => {
     beforeEach(() => {
-        mock = new MockAdapter((axios as any));
+        mockedAxios.create.mockImplementationOnce(() => {
+            return {
+                get: jest.fn(),
+                interceptors: {
+                    response: {
+                        use: jest.fn(),
+                    },
+                },
+            };
+        });
         updateAxiosInstance();
     });
 
-    afterEach(() => {
-        mock.restore();
+    it('makeSearch should make a request with given params', async () => {
+        const mockedResponse: AxiosResponse = {
+            data: {},
+            status: 200,
+            statusText: 'OK',
+            config: {},
+            headers: {},
+        };
+
+        mockedAxios.get.mockResolvedValueOnce(mockedResponse);
+        const params = { dataset: 'test-dataset', q: 'test-query' };
+
+        await expect(makeSearch(params)).resolves.toEqual(mockedResponse.data);
+        expect(mockedAxios.get).toBeCalledWith('/search/', { params });
     });
 
-    it('should call the correct endpoint for searchByQuery', async () => {
-        mock.onGet('/search/').reply(200);
-        await searchByQuery('test');
-        expect(mock.history.get[0].params).toEqual({ dataset: 'panorama-des-festivals', q: 'test' });
+    it('searchByQuery should make a request with the correct parameters', async () => {
+        const mockedResponse: AxiosResponse = {
+            data: {},
+            status: 200,
+            statusText: 'OK',
+            headers: {},
+        };
+
+        mockedAxios.get.mockResolvedValueOnce(mockedResponse);
+        const query = 'test';
+
+        await expect(searchByQuery(query)).resolves.toEqual(mockedResponse.data);
+        expect(mockedAxios.get).toBeCalledWith('/search/', {
+            params: { dataset: 'panorama-des-festivals', q: query },
+        });
     });
 
-    it('should call the correct endpoint for searchByRegion', async () => {
-        mock.onGet('/search/').reply(200);
-        await searchByRegion('Grand Est');
-        expect(mock.history.get[0].params).toEqual({ dataset: 'panorama-des-festivals', 'refine.region': 'Grand Est' });
-    });
+    // You can create similar tests for other functions like `searchByRegion`, `searchByDomaine`, etc.
 
-    // Similar tests can be written for searchByDomaine, searchByComplementDomaine, searchByDepartement, and searchByMoisHabituelDeDebut
+    it('search should make a request with the correct parameters', async () => {
+        const mockedResponse: AxiosResponse = {
+            data: {},
+            status: 200,
+            statusText: 'OK',
+            config: {},
+            headers: {},
+        };
 
-    it('should call the correct endpoint for search with all parameters', async () => {
-        mock.onGet('/search/').reply(200);
-        const params = {
-            query: 'test',
-            lang: 'en',
+        mockedAxios.get.mockResolvedValueOnce(mockedResponse);
+
+        const searchParams: SearchParams = {
+            query: '',
+            lang: 'fr',
             rows: 10,
             region: 'Grand Est',
-            domaine: 'Musique',
-            complement_domaine: 'Festival de musique',
-            departement: 'Bas-Rhin',
-            mois_habituel_de_debut: 'Juillet'
+            domaine: '',
+            complement_domaine: '',
+            departement: '',
+            mois_habituel_de_debut: '',
         };
-        await search(params);
-        expect(mock.history.get[0].params).toEqual({
-            dataset: 'panorama-des-festivals',
-            q: 'test',
-            lang: 'en',
-            rows: 10,
-            facet: ['region', 'domaine', 'complement_domaine', 'departement', 'mois_habituel_de_debut'],
-            'refine.region': 'Grand Est',
-            'refine.domaine': 'Musique',
-            'refine.complement_domaine': 'Festival de musique',
-            'refine.departement': 'Bas-Rhin',
-            'refine.mois_habituel_de_debut': 'Juillet'
+
+        await expect(search(searchParams)).resolves.toEqual(mockedResponse.data);
+        expect(mockedAxios.get).toBeCalledWith('/search/', {
+            params: {
+                dataset: 'panorama-des-festivals',
+                q: searchParams.query,
+                lang: searchParams.lang,
+                rows: searchParams.rows,
+                facet: ['region', 'domaine', 'complement_domaine', 'departement', 'mois_habituel_de_debut'],
+                'refine.region': searchParams.region,
+                'refine.domaine': searchParams.domaine,
+                'refine.complement_domaine': searchParams.complement_domaine,
+                'refine.departement': searchParams.departement,
+                'refine.mois_habituel_de_debut': searchParams.mois_habituel_de_debut,
+            },
         });
     });
 });

@@ -12,7 +12,8 @@ let instance: AxiosInstance | null = null;
  */
 export function updateAxiosInstance () {
     instance = axios.create({
-        baseURL: 'https://data.culture.gouv.fr/api/records/1.0/'
+        baseURL: 'https://data.culture.gouv.fr/api/records/1.0/',
+        headers: {},
     });
 
     instance.interceptors.response.use(
@@ -37,7 +38,7 @@ function errorHandler (error: AxiosError): void {
  * @returns {Promise} A Promise that resolves to the response data.
  * @throws {Error} If the Axios instance is not initialized.
  */
-async function makeSearch (params: unknown) {
+export async function makeSearch (params: unknown) {
     if (!instance) {
         throw new Error('Axios instance not initialized');
     }
