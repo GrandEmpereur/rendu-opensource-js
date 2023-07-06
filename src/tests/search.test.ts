@@ -1,7 +1,7 @@
 // This is the corrected file:
 import axios from 'axios';
 import MockAdapter from 'axios-mock-adapter';
-import { updateAxiosInstance, searchByQuery, searchByRegion, searchByDomaine, searchByComplementDomaine, searchByDepartement, searchByMoisHabituelDeDebut, search } from '../axios';
+import { updateAxiosInstance, searchByQuery, searchByRegion,search } from '../axios';
 
 jest.mock('axios', () => ({
     create: jest.fn(() => ({
